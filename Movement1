@@ -1,0 +1,141 @@
+using System.Collections;
+using System.Collections.Generic;
+using UnityEngine;
+
+public class GridMovementV2 : MonoBehaviour
+{
+    public float moveSpeed = 7f;
+    public Transform movePoint;
+    
+    public LayerMask Collidable;
+    public LayerMask CollidableBody;
+   
+    public Transform bodyPartTransforms;
+    public Transform bodyPartPoint;
+    
+    private List<Transform> snakeSegments;
+    private List<Transform> snakeSegmentPoints;
+    public Transform newBodyPartPoint;
+
+
+    // Start is called before the first frame update
+    void Start()
+    {
+        movePoint.parent = null;
+        snakeSegments = new List<Transform>();
+        snakeSegmentPoints = new List<Transform>();
+        snakeSegmentPoints.Add(this.transform);
+
+        snakeSegments.Add(this.transform);
+        newBodyPartPoint.parent = null;
+        Grow();
+    }
+
+    // Update is called once per frame
+    void Update()
+    {
+
+        transform.position = Vector3.MoveTowards(snakeSegments[0].position, movePoint.position, moveSpeed * Time.deltaTime);
+
+
+
+        bool hasFloor = false;
+        if (Vector3.Distance(transform.position, movePoint.position) == 0f)
+        {
+
+            for (int i = snakeSegments.Count-1; i > 0; i--)
+            {
+
+
+                if (Physics2D.OverlapCircle(snakeSegments[i].GetChild(0).position, 0.4f, Collidable) || Physics2D.OverlapCircle(snakeSegments[i].position + new Vector3(0f, -1f, 0f), 0.4f, Collidable) || Physics2D.OverlapCircle(movePoint.position + new Vector3(0f, -1f, 0f), 0.4f, Collidable))
+                {
+                    hasFloor = true;
+                }
+               
+
+            }
+           
+            if (!hasFloor)
+            {
+                movePoint.position += new Vector3(0f, -1f, 0f);
+
+                for (int s = snakeSegments.Count - 1; s > 0; s--)
+                {
+                    snakeSegmentPoints[s].position += new Vector3(0f, -1f, 0f);
+                }
+
+            }
+
+            //Movement
+            if (Input.GetKeyDown(KeyCode.D) || Input.GetKeyDown(KeyCode.A))
+            {
+                if (!Physics2D.OverlapCircle(movePoint.position + new Vector3(Input.GetAxisRaw("Horizontal"), 0f, 0f), 0.1f, Collidable) && !Physics2D.OverlapCircle(movePoint.position + new Vector3(Input.GetAxisRaw("Horizontal"), 0f, 0f), 0.1f, CollidableBody))
+                {
+
+                    for (int i = snakeSegmentPoints.Count - 1; i > 0; i--)
+                    {
+                        snakeSegmentPoints[i].position = snakeSegments[i - 1].position;
+
+                    }
+
+                    movePoint.position += new Vector3(Input.GetAxisRaw("Horizontal"), 0f, 0f);
+                    newBodyPartPoint.position = new Vector3(movePoint.position.x - Input.GetAxisRaw("Horizontal"), movePoint.position.y, 0f);
+
+                }
+            }
+
+            
+
+
+            else if (Input.GetKeyDown(KeyCode.S) || Input.GetKeyDown(KeyCode.W))
+            {
+                if (!Physics2D.OverlapCircle(movePoint.position + new Vector3(0f, Input.GetAxisRaw("Vertical"), 0f), 0.1f, Collidable) && !Physics2D.OverlapCircle(movePoint.position + new Vector3(0f, Input.GetAxisRaw("Vertical"), 0f), 0.1f, CollidableBody))
+                {
+                    movePoint.position += new Vector3(0f, Input.GetAxisRaw("Vertical"), 0f);
+
+
+
+                    for (int i = snakeSegmentPoints.Count - 1; i > 0; i--)
+                    {
+                        snakeSegmentPoints[i].position = snakeSegments[i - 1].position;
+
+                    }
+                }
+
+            }
+
+        }
+
+        for (int i = snakeSegments.Count - 1; i > 0; i--)
+        {
+            snakeSegments[i].position = snakeSegmentPoints[i - 1].position;
+
+        }
+
+    }
+
+    private void OnTriggerEnter2D(Collider2D other)
+    {
+
+        if (other.tag == "Fruit")
+        {
+           
+            Destroy(other.gameObject); 
+            Grow();
+            Grow();
+        }
+
+    }
+    private void Grow()
+    {
+        new WaitForSeconds(1f);
+        Transform segment = Instantiate(this.bodyPartTransforms);
+        Transform segmentPoint = Instantiate(this.bodyPartPoint);
+
+        snakeSegments.Add(segment);
+        snakeSegmentPoints.Add(segmentPoint);        
+    }
+
+
+
+}
