@@ -8,7 +8,8 @@ public class Dangerous : MonoBehaviour
     {
         if (other.tag == "Player")
         {
-            SceneManager.LoadScene("SampleScene");
+            Scene thisScene = SceneManager.GetActiveScene();
+            SceneManager.LoadScene(thisScene.name);
             print("You Died!");
         }
     }
