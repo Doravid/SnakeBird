@@ -1,0 +1,24 @@
+using System.Collections;
+using System.Collections.Generic;
+using UnityEngine;
+using UnityEngine.SceneManagement;
+
+public class Reset : MonoBehaviour
+{
+    //Is called by UI scripts does nothing on its own
+    public void Restart()
+    {
+        Scene thisScene = SceneManager.GetActiveScene();
+        SceneManager.LoadScene(thisScene.name); 
+    }
+
+    //Checks if you press R and then resets the scene if you did
+    private void Update()
+    {
+        if (Input.GetKey(KeyCode.R))
+        {
+            Scene thisScene = SceneManager.GetActiveScene();
+            SceneManager.LoadScene(thisScene.name);
+        }
+    }
+}
