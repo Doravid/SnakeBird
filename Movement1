@@ -4,18 +4,30 @@ using UnityEngine;
 
 public class GridMovementV2 : MonoBehaviour
 {
+    //How "Snappy" the head moves
     public float moveSpeed = 7f;
+    
+    //The point that the head moves to
     public Transform movePoint;
     
+    //A Layer for static objects like walls and such.
     public LayerMask Collidable;
-    public LayerMask CollidableBody;
    
-    public Transform bodyPartTransforms;
-    public Transform bodyPartPoint;
+    //A collision layer for the body so the snake supports its self
+    public LayerMask CollidableBody;
     
+    //A collison layer so the snake can stand on fruit without eating it
+    public LayerMask FruitCollider;
+   
+    //The Body that gets duplicated whenever food is eatem
+    public Transform bodyPartTransforms;
+    //The point that is used to decide where the body goes
+    public Transform bodyPartPoint;
+
+
+    //Lists that constain bodyPartTransforms's and bodyPartPoint's
     private List<Transform> snakeSegments;
     private List<Transform> snakeSegmentPoints;
-    public Transform newBodyPartPoint;
 
 
     // Start is called before the first frame update
@@ -27,7 +39,6 @@ public class GridMovementV2 : MonoBehaviour
         snakeSegmentPoints.Add(this.transform);
 
         snakeSegments.Add(this.transform);
-        newBodyPartPoint.parent = null;
         Grow();
     }
 
@@ -37,17 +48,18 @@ public class GridMovementV2 : MonoBehaviour
 
         transform.position = Vector3.MoveTowards(snakeSegments[0].position, movePoint.position, moveSpeed * Time.deltaTime);
 
-
-
+        //A boolean to check if there is currently a floor/collidable object below any of the body
         bool hasFloor = false;
+        
         if (Vector3.Distance(transform.position, movePoint.position) == 0f)
         {
 
+          //Gravity
             for (int i = snakeSegments.Count-1; i > 0; i--)
             {
 
 
-                if (Physics2D.OverlapCircle(snakeSegments[i].GetChild(0).position, 0.4f, Collidable) || Physics2D.OverlapCircle(snakeSegments[i].position + new Vector3(0f, -1f, 0f), 0.4f, Collidable) || Physics2D.OverlapCircle(movePoint.position + new Vector3(0f, -1f, 0f), 0.4f, Collidable))
+                if (Physics2D.OverlapCircle(snakeSegments[i].GetChild(0).position, 0.4f, Collidable) || Physics2D.OverlapCircle(snakeSegments[i].position + new Vector3(0f, -1f, 0f), 0.4f, Collidable) || Physics2D.OverlapCircle(movePoint.position + new Vector3(0f, -1f, 0f), 0.4f, Collidable) || Physics2D.OverlapCircle(snakeSegments[i].position + new Vector3(0f, -1f, 0f), 0.4f, FruitCollider) || Physics2D.OverlapCircle(movePoint.position + new Vector3(0f, -1f, 0f), 0.4f, FruitCollider))
                 {
                     hasFloor = true;
                 }
@@ -66,8 +78,8 @@ public class GridMovementV2 : MonoBehaviour
 
             }
 
-            //Movement
-            if (Input.GetKeyDown(KeyCode.D) || Input.GetKeyDown(KeyCode.A))
+            //Normal Movement
+            if (Input.GetKeyDown(KeyCode.D) || Input.GetKeyDown(KeyCode.A) || Input.GetKeyDown(KeyCode.LeftArrow) || Input.GetKeyDown(KeyCode.RightArrow))
             {
                 if (!Physics2D.OverlapCircle(movePoint.position + new Vector3(Input.GetAxisRaw("Horizontal"), 0f, 0f), 0.1f, Collidable) && !Physics2D.OverlapCircle(movePoint.position + new Vector3(Input.GetAxisRaw("Horizontal"), 0f, 0f), 0.1f, CollidableBody))
                 {
@@ -78,34 +90,34 @@ public class GridMovementV2 : MonoBehaviour
 
                     }
 
+                    //Moving the head where you enter
                     movePoint.position += new Vector3(Input.GetAxisRaw("Horizontal"), 0f, 0f);
-                    newBodyPartPoint.position = new Vector3(movePoint.position.x - Input.GetAxisRaw("Horizontal"), movePoint.position.y, 0f);
-
+                    
                 }
             }
 
-            
 
-
-            else if (Input.GetKeyDown(KeyCode.S) || Input.GetKeyDown(KeyCode.W))
+            else if (Input.GetKeyDown(KeyCode.S) || Input.GetKeyDown(KeyCode.W) || Input.GetKeyDown(KeyCode.UpArrow) || Input.GetKeyDown(KeyCode.DownArrow))
             {
                 if (!Physics2D.OverlapCircle(movePoint.position + new Vector3(0f, Input.GetAxisRaw("Vertical"), 0f), 0.1f, Collidable) && !Physics2D.OverlapCircle(movePoint.position + new Vector3(0f, Input.GetAxisRaw("Vertical"), 0f), 0.1f, CollidableBody))
                 {
-                    movePoint.position += new Vector3(0f, Input.GetAxisRaw("Vertical"), 0f);
-
-
-
+                    
                     for (int i = snakeSegmentPoints.Count - 1; i > 0; i--)
                     {
                         snakeSegmentPoints[i].position = snakeSegments[i - 1].position;
 
                     }
+                    
+                    //Moving the head where you enter
+                    movePoint.position += new Vector3(0f, Input.GetAxisRaw("Vertical"), 0f);
                 }
 
             }
 
         }
 
+       
+        //How the body moves
         for (int i = snakeSegments.Count - 1; i > 0; i--)
         {
             snakeSegments[i].position = snakeSegmentPoints[i - 1].position;
@@ -114,6 +126,7 @@ public class GridMovementV2 : MonoBehaviour
 
     }
 
+   //Method that checks if you collide with a fruit and then calls the grow method twice
     private void OnTriggerEnter2D(Collider2D other)
     {
 
@@ -124,8 +137,9 @@ public class GridMovementV2 : MonoBehaviour
             Grow();
             Grow();
         }
-
     }
+    
+    //Grows half of a new body part dont ask me why
     private void Grow()
     {
         new WaitForSeconds(1f);
@@ -135,7 +149,4 @@ public class GridMovementV2 : MonoBehaviour
         snakeSegments.Add(segment);
         snakeSegmentPoints.Add(segmentPoint);        
     }
-
-
-
 }
